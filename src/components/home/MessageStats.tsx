@@ -53,7 +53,7 @@ function getMessageCountAgainstTimeData(messages: Message[]) {
   for (let i=0;i<messages.length;i++) {
     const date = new Date(messages[i].timestamp);
     const month = getMonthName(date.getMonth(), date.getFullYear());
-    if (!data[month]) {
+    if (data[month] === undefined) {
       data[month] = 0;
     }
 
@@ -63,7 +63,8 @@ function getMessageCountAgainstTimeData(messages: Message[]) {
 
     if (!startMonth || (monthId && monthId < startMonth)) {
       startMonth = monthId;
-    } else if (!endMonth || (monthId && monthId > endMonth)) {
+    }
+    if (!endMonth || (monthId && monthId > endMonth)) {
       endMonth = monthId;
     }
   }
