@@ -16,11 +16,13 @@ const MONTH_NAMES = [
   "Dec"
 ];
 
-export function getFilteredMessages(messages: Message[], filter: string) {
+export function getFilteredMessages(messages: Message[], filter: string, filterCaseSensitive: boolean = true) {
   const newMessages = [];
+  const newFilter = filterCaseSensitive ? filter : filter.toLowerCase();
 
   for (let i=0;i<messages.length;i++) {
-    if (messages[i].content.includes(filter)) {
+    const content = filterCaseSensitive ? messages[i].content : messages[i].content.toLowerCase();
+    if (content.includes(newFilter)) {
       newMessages.push(messages[i]);
     }
   }

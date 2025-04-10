@@ -15,6 +15,7 @@ interface BaseMessageStatsProps {
 
 export default function MessageStats({ messages }: BaseMessageStatsProps) {
   const [filter, setFilter] = useState("");
+  const [filterCaseSensitive, setFilterCaseSensitive] = useState(true);
   
   return (
     <div>
@@ -28,7 +29,18 @@ export default function MessageStats({ messages }: BaseMessageStatsProps) {
         }}
       />
 
-      <MessageCountAgainstTime messages={getFilteredMessages(messages, filter)} />
+      <Label htmlFor="textFilterCaseSensitive">Text filter case sensitive</Label>
+      <Input
+        id="textFilterCaseSensitive"
+        name="textFilterCaseSensitive"
+        type="checkbox"
+        defaultChecked
+        onChange={(event) => {
+          setFilterCaseSensitive(event.target.checked);
+        }}
+      />
+
+      <MessageCountAgainstTime messages={getFilteredMessages(messages, filter, filterCaseSensitive)} />
     </div>
   );
 }
