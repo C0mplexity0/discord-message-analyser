@@ -16,6 +16,8 @@ interface BaseMessageStatsProps {
 export default function MessageStats({ messages }: BaseMessageStatsProps) {
   const [filter, setFilter] = useState("");
   const [filterCaseSensitive, setFilterCaseSensitive] = useState(true);
+
+  const filteredMessages = getFilteredMessages(messages, filter, filterCaseSensitive);
   
   return (
     <div>
@@ -40,7 +42,9 @@ export default function MessageStats({ messages }: BaseMessageStatsProps) {
         }}
       />
 
-      <MessageCountAgainstTime messages={getFilteredMessages(messages, filter, filterCaseSensitive)} />
+      <MessageCountAgainstTime messages={filteredMessages} />
+
+      <MessageDisplay messages={filteredMessages} />
     </div>
   );
 }
@@ -108,4 +112,19 @@ function MessageCountAgainstTime({ messages }: BaseMessageStatsProps) {
       <MonthBarChart title="Message Frequency" chartData={getMessageCountAgainstTimeData(messages)} />
     </div>
   )
+}
+
+function MessageDisplay({ messages }: BaseMessageStatsProps) {
+  const selectedMessages = [];
+  for (let i=0;i<Math.min(messages.length, 50);i++) {
+    selectedMessages.push(messages[i]);
+  }
+
+  return (
+    <div>
+      {selectedMessages.map((value, i) => {
+        return <p key={i}>{value.content}</p>;
+      })}
+    </div>
+  );
 }
