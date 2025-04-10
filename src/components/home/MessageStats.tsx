@@ -1,5 +1,8 @@
-import { getMonthIdFromName, getMonthName, getMonthNameFromId } from "@/lib/message-stats-utils";
+import { getFilteredMessages, getMonthIdFromName, getMonthName, getMonthNameFromId } from "@/lib/message-stats-utils";
 import { MonthBarChart } from "../ui/charts/month-bar-chart";
+import { Input } from "../ui/input";
+import { useState } from "react";
+import { Label } from "../ui/label";
 
 export interface Message {
   content: string;
@@ -11,20 +14,23 @@ interface BaseMessageStatsProps {
 }
 
 export default function MessageStats({ messages }: BaseMessageStatsProps) {
+  const [filter, setFilter] = useState("");
+  
   return (
     <div>
-      <MessageCount messages={messages} />
-      <MessageCountAgainstTime messages={messages} />
+      <Label htmlFor="textFilter">Text filter</Label>
+      <Input
+        id="textFilter"
+        name="textFilter"
+        type="text"
+        onChange={(event) => {
+          setFilter(event.target.value);
+        }}
+      />
+
+      <MessageCountAgainstTime messages={getFilteredMessages(messages, filter)} />
     </div>
   );
-}
-
-function MessageCount({ messages }: BaseMessageStatsProps) {
-  return (
-    <div>
-      <h1>Message count {messages.length}</h1>
-    </div>
-  )
 }
 
 function getMessageCountAgainstTimeData(messages: Message[]) {
@@ -51,8 +57,7 @@ function getMessageCountAgainstTimeData(messages: Message[]) {
   }
 
   if (startMonth === undefined || endMonth === undefined) {
-    startMonth = 0;
-    endMonth = 0;
+    return [];
   }
 
   const chartData = [];

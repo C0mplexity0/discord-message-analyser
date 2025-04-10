@@ -15,6 +15,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
+import { getTotalMessagesFromChartData } from "@/lib/message-stats-utils"
 
 const chartConfig = {
   messages: {
@@ -23,12 +24,17 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-export function MonthBarChart({ chartData, title }: { chartData: { month: string, messages: number }[], title: string }) {
+export interface MonthBarChartData {
+  month: string;
+  messages: number;
+}
+
+export function MonthBarChart({ chartData, title }: { chartData: MonthBarChartData[], title: string }) {
   return (
     <Card>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
-        <CardDescription>{chartData[0] ? (chartData[0].month + " - " + chartData[chartData.length-1].month) : "No data"}</CardDescription>
+        <CardDescription>{chartData[0] ? (chartData[0].month + " - " + chartData[chartData.length-1].month + " (" + getTotalMessagesFromChartData(chartData) + " results)") : "No data"}</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>

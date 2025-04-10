@@ -1,3 +1,6 @@
+import { Message } from "@/components/home/MessageStats";
+import { MonthBarChartData } from "@/components/ui/charts/month-bar-chart";
+
 const MONTH_NAMES = [
   "Jan",
   "Feb",
@@ -12,6 +15,28 @@ const MONTH_NAMES = [
   "Nov",
   "Dec"
 ];
+
+export function getFilteredMessages(messages: Message[], filter: string) {
+  const newMessages = [];
+
+  for (let i=0;i<messages.length;i++) {
+    if (messages[i].content.includes(filter)) {
+      newMessages.push(messages[i]);
+    }
+  }
+
+  return newMessages;
+}
+
+export function getTotalMessagesFromChartData(chartData: MonthBarChartData[]) {
+  let total = 0;
+  
+  for (const month in chartData) {
+    total += chartData[month].messages;
+  }
+
+  return total;
+}
 
 export function getMonthId(month: number, year: number) {
   return (year * 12) + month;
