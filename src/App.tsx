@@ -1,6 +1,10 @@
+import { useState } from "react";
 import FileAttachment from "./components/home/FileAttachment";
+import MessageStats, { Message } from "./components/home/MessageStats";
 
 export default function App() {
+  const [messages, setMessages] = useState<Message[]>([]);
+
   return (
     <main className="size-full">
       <FileAttachment
@@ -13,9 +17,11 @@ export default function App() {
 
           const content = JSON.parse(await file.text());
           
-          console.log(content);
+          setMessages(content);
         }}
       />
+
+      <MessageStats messages={messages} />
     </main>
   )
 }
