@@ -56,10 +56,10 @@ export default function MessageStats({ messages }: BaseMessageStatsProps) {
 
       <div className="flex flex-grid flex-wrap gap-5">
         <MessageStatContainer>
-          <MessageCountAgainstTime messages={filteredMessages} />
+          <MessageDisplay messages={filteredMessages} />
         </MessageStatContainer>
         <MessageStatContainer>
-          <MessageDisplay messages={filteredMessages} />
+          <MessageCountAgainstTime messages={filteredMessages} />
         </MessageStatContainer>
         <MessageStatContainer>
           <UserPieChart messages={filteredMessages} />
