@@ -17,6 +17,11 @@ interface BaseMessageStatsProps {
   messages: Message[];
 }
 
+export interface MessageStatsSettings {
+  textFilter: string;
+  textFilterCaseSensitive: boolean;
+}
+
 function MessageStatContainer({ children }: { children: ReactNode }) {
   return (
     <div style={{width: "calc(50% - (2.5 * var(--spacing)))"}} className="aspect-[4/3]">
@@ -25,21 +30,16 @@ function MessageStatContainer({ children }: { children: ReactNode }) {
   )
 }
 
-export default function MessageStats({ messages }: BaseMessageStatsProps) {
-  const [filter, setFilter] = useState("");
-  const [filterCaseSensitive, setFilterCaseSensitive] = useState(true);
-
-  const filteredMessages = getFilteredMessages(messages, filter, filterCaseSensitive);
-  
+export function MessageStatsOptions({ onUpdate }: { onUpdate: (updatedKey: keyof MessageStatsSettings, value: unknown) => void }) {
   return (
-    <div>
+    <>
       <Label htmlFor="textFilter">Text filter</Label>
       <Input
         id="textFilter"
         name="textFilter"
         type="text"
         onChange={(event) => {
-          setFilter(event.target.value);
+          onUpdate("textFilter", event.target.value);
         }}
       />
 
@@ -50,10 +50,18 @@ export default function MessageStats({ messages }: BaseMessageStatsProps) {
         type="checkbox"
         defaultChecked
         onChange={(event) => {
-          setFilterCaseSensitive(event.target.checked);
+          onUpdate("textFilterCaseSensitive", event.target.checked);
         }}
       />
+    </>
+  )
+}
 
+export default function MessageStats({ messages, settings }: BaseMessageStatsProps & { settings: MessageStatsSettings }) {
+  const filteredMessages = getFilteredMessages(messages, settings.textFilter, settings.textFilterCaseSensitive);
+  
+  return (
+    <div>
       <div className="flex flex-grid flex-wrap gap-5">
         <MessageStatContainer>
           <MessageDisplay messages={filteredMessages} />

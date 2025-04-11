@@ -1,4 +1,4 @@
-import { Message } from "@/components/home/MessageStats";
+import { Message, MessageStatsSettings } from "@/components/home/MessageStats";
 import { MonthBarChartData } from "@/components/ui/charts/month-bar-chart";
 
 const MONTH_NAMES = [
@@ -81,4 +81,11 @@ export function setupUserColour(username: string) {
 
   document.body.style.setProperty("--chart-user-" + username, `var(--chart-${(userColourCount % 5) + 1})`);
   userColourCount++;
+}
+
+export function getDefaultMessageStatsSettings(): MessageStatsSettings {
+  return {
+    textFilter: "",
+    textFilterCaseSensitive: false
+  };
 }
