@@ -79,7 +79,7 @@ export function setupUserColour(username: string) {
     return;
   }
 
-  document.body.style.setProperty("--chart-user-" + username, `var(--chart-${(userColourCount % 5) + 1})`);
+  document.body.style.setProperty("--chart-user-" + username, `var(--chart-${(userColourCount % 8) + 1})`);
   userColourCount++;
 }
 
