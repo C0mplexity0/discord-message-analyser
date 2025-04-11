@@ -1,17 +1,28 @@
 import { getFilteredMessages, getMonthIdFromName, getMonthName, getMonthNameFromId } from "@/lib/message-stats-utils";
 import { MonthBarChart } from "../ui/charts/month-bar-chart";
 import { Input } from "../ui/input";
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Label } from "../ui/label";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "../ui/pagination";
+import { Card } from "../ui/card";
+import { LabelledPieChart } from "../ui/charts/labelled-pie-chart";
 
 export interface Message {
   content: string;
   timestamp: string;
+  author: { id: string, username: string };
 }
 
 interface BaseMessageStatsProps {
   messages: Message[];
+}
+
+function MessageStatContainer({ children }: { children: ReactNode }) {
+  return (
+    <div style={{width: "calc(50% - (2.5 * var(--spacing)))"}} className="aspect-video">
+      {children}
+    </div>
+  )
 }
 
 export default function MessageStats({ messages }: BaseMessageStatsProps) {
@@ -43,9 +54,17 @@ export default function MessageStats({ messages }: BaseMessageStatsProps) {
         }}
       />
 
-      <MessageCountAgainstTime messages={filteredMessages} />
-
-      <MessageDisplay messages={filteredMessages} />
+      <div className="flex flex-grid flex-wrap gap-5">
+        <MessageStatContainer>
+          <MessageCountAgainstTime messages={filteredMessages} />
+        </MessageStatContainer>
+        <MessageStatContainer>
+          <MessageDisplay messages={filteredMessages} />
+        </MessageStatContainer>
+        <MessageStatContainer>
+          <UserPieChart messages={filteredMessages} />
+        </MessageStatContainer>
+      </div>
     </div>
   );
 }
@@ -152,8 +171,8 @@ function MessageDisplay({ messages }: BaseMessageStatsProps) {
   pageLinks = newPageLinks;
 
   return (
-    <div className="p-4 bg-card border rounded-lg flex flex-col gap-4">
-      <div className="h-60 overflow-auto">
+    <Card className="p-4 h-full flex flex-col gap-4 overflow-hidden">
+      <div className="overflow-auto">
         {selectedMessages.map((value, i) => {
           return <p key={i} className={`${i % 2 === 0 ? "bg-secondary/40" : ""} p-2 rounded-lg`}>{value.content}</p>;
         })}
@@ -198,6 +217,43 @@ function MessageDisplay({ messages }: BaseMessageStatsProps) {
           </PaginationItem>
         </PaginationContent>
       </Pagination>
-    </div>
+    </Card>
+  );
+}
+
+function UserPieChart({ messages }: BaseMessageStatsProps) {
+  const authors: { [id: string]: string } = {};
+  const messagesByAuthor: { [id: string]: number } = {};
+
+  for (let i=0;i<messages.length;i++) {
+    const authorId = messages[i].author.id;
+    
+    if (messagesByAuthor[authorId] === undefined) {
+      messagesByAuthor[authorId] = 0;
+    }
+
+    messagesByAuthor[authorId] += 1;
+    authors[authorId] = "@" + messages[i].author.username;
+  }
+
+  let otherMessages = 0;
+
+  const chartData = [];
+
+  for (const author in messagesByAuthor) {
+    if (messagesByAuthor[author] / messages.length < 0.05) {
+      otherMessages += messagesByAuthor[author];
+      continue;
+    }
+
+    chartData.push({ username: authors[author], messages: messagesByAuthor[author] });
+  }
+
+  if (otherMessages > 0) {
+    chartData.push({ username: "Other", messages: otherMessages, fill: "var(--chart-gray)" });
+  }
+
+  return (
+    <LabelledPieChart chartData={chartData} />
   );
 }
