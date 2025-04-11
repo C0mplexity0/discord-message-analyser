@@ -69,8 +69,10 @@ export default function App() {
 
       <ResizableHandle withHandle />
 
-      <ResizablePanel minSize={50} className="p-5">
-        <MessageStats messages={messages} settings={settings} />
+      <ResizablePanel minSize={50}>
+        <div className="overflow-auto h-full p-5">
+          <MessageStats messages={messages} settings={settings} />
+        </div>
       </ResizablePanel>
     </ResizablePanelGroup>
   );
