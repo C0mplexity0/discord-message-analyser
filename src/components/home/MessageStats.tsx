@@ -6,11 +6,13 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { Card } from "../ui/card";
 import { LabelledPieChart } from "../ui/charts/labelled-pie-chart";
 import { MonthStackedBarChart } from "../ui/charts/month-stacked-bar-chart";
+import { Link, Tag } from "lucide-react";
 
 export interface Message {
   content: string;
   timestamp: string;
-  author: { id: string, username: string };
+  author: { id: string, username: string, "global_name": string };
+  attachments: string[];
 }
 
 interface BaseMessageStatsProps {
@@ -161,7 +163,39 @@ function getMessageCountAgainstTimeData(messages: Message[]) {
 function MessageCountAgainstTime({ messages }: BaseMessageStatsProps) {
   return (
     <MonthStackedBarChart title="Message Frequency" chartData={getMessageCountAgainstTimeData(messages)} />
-  )
+  );
+}
+
+function MessageDisplayMessage({ message }: { message: Message }) {
+  const linkRegex = /https:\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])/;
+  const foundLinks = message.content.match(linkRegex);
+  let isTenorGif = false;
+  if (foundLinks && foundLinks[1] && foundLinks[1] === "tenor.com") {
+    isTenorGif = foundLinks[0] === message.content;
+  }
+
+  return (
+    <div className="flex flex-col p-2 pt-1.5 pb-1.5 bg-secondary/90 rounded-md">
+      <span className="font-semibold">{message.author["global_name"]}</span>
+      {!isTenorGif ? <span className="text-secondary-foreground">{message.content}</span> : ""}
+      {
+        message.attachments.length > 0 ? 
+        <div className="rounded-sm bg-accent flex flex-row p-1 pl-1.5 pr-2 gap-1 w-fit mt-1">
+          <Tag className="w-5 h-5 p-0.5" />
+          <span className="text-sm w-fit inline-block">{`${message.attachments.length} attachments`}</span>
+        </div>
+        : ""
+      }
+      {
+        isTenorGif ?
+        <div className="rounded-sm bg-accent flex flex-row p-1 pl-1.5 pr-2 gap-1 w-fit mt-1">
+          <Link className="w-5 h-5 p-0.5" />
+          <a href={foundLinks ? foundLinks[0] : ""} target="_blank" className="text-sm w-fit inline-block">Gif</a>
+        </div>
+        : ""
+      }
+    </div>
+  );
 }
 
 function MessageDisplay({ messages }: BaseMessageStatsProps) {
@@ -202,9 +236,9 @@ function MessageDisplay({ messages }: BaseMessageStatsProps) {
 
   return (
     <Card className="p-4 h-full flex flex-col gap-4 overflow-hidden">
-      <div className="overflow-auto">
+      <div className="overflow-auto flex flex-col gap-2">
         {selectedMessages.map((value, i) => {
-          return <p key={i} className={`${i % 2 === 0 ? "bg-secondary/40" : ""} p-2 rounded-lg`}>{value.content}</p>;
+          return <MessageDisplayMessage message={value} key={i} />;
         })}
       </div>
 
