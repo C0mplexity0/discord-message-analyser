@@ -1,8 +1,9 @@
 import { getFilteredMessages, getMonthIdFromName, getMonthName, getMonthNameFromId } from "@/lib/message-stats-utils";
 import { MonthBarChart } from "../ui/charts/month-bar-chart";
 import { Input } from "../ui/input";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Label } from "../ui/label";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "../ui/pagination";
 
 export interface Message {
   content: string;
@@ -115,16 +116,88 @@ function MessageCountAgainstTime({ messages }: BaseMessageStatsProps) {
 }
 
 function MessageDisplay({ messages }: BaseMessageStatsProps) {
+  const [page, setPage] = useState(1);
+  const DISPLAYED_AT_ONCE = 50;
+  
   const selectedMessages = [];
-  for (let i=0;i<Math.min(messages.length, 50);i++) {
+  for (let i=(DISPLAYED_AT_ONCE * (page-1));i<Math.min(messages.length, DISPLAYED_AT_ONCE * page);i++) {
     selectedMessages.push(messages[i]);
   }
 
+  useEffect(() => {
+    setPage(1);
+  }, [messages]);
+
+  let pageLinks = [
+    page - 1,
+    page,
+    page + 1
+  ];
+
+  if (page === 1) {
+    pageLinks = [
+      page,
+      page + 1,
+      page + 2
+    ]
+  }
+
+  const newPageLinks = [];
+
+  for (let i=0;i<pageLinks.length;i++) {
+    if (pageLinks[i] <= Math.ceil(messages.length / DISPLAYED_AT_ONCE))
+      newPageLinks.push(pageLinks[i]);
+  }
+
+  pageLinks = newPageLinks;
+
   return (
-    <div>
-      {selectedMessages.map((value, i) => {
-        return <p key={i}>{value.content}</p>;
-      })}
+    <div className="p-4 bg-card border rounded-lg flex flex-col gap-4">
+      <div className="h-60 overflow-auto">
+        {selectedMessages.map((value, i) => {
+          return <p key={i} className={`${i % 2 === 0 ? "bg-secondary/40" : ""} p-2 rounded-lg`}>{value.content}</p>;
+        })}
+      </div>
+
+      <Pagination>
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious 
+              disabled={page <= 1}
+              onClick={() => {
+                if (page > 1)
+                  setPage(page - 1);
+              }} 
+            />
+          </PaginationItem>
+
+          {
+            pageLinks.map((val, i) => {
+              return (
+                <PaginationItem>
+                  <PaginationLink 
+                    key={i}
+                    onClick={() => {
+                      setPage(val);
+                    }}
+                    isActive={page === val}
+                  >{val}</PaginationLink>
+                </PaginationItem>
+              )
+            })
+          }
+
+          <PaginationItem>
+            <PaginationNext 
+              disabled={page >= Math.ceil(messages.length / DISPLAYED_AT_ONCE)}
+              onClick={() => {
+                if (page < (messages.length / DISPLAYED_AT_ONCE))
+                  setPage(page + 1);
+              }} 
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
     </div>
   );
 }
