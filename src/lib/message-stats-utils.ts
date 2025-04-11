@@ -86,6 +86,7 @@ export function setupUserColour(username: string) {
 export function getDefaultMessageStatsSettings(): MessageStatsSettings {
   return {
     textFilter: "",
-    textFilterCaseSensitive: false
+    textFilterCaseSensitive: false,
+    autoUpdate: false
   };
 }

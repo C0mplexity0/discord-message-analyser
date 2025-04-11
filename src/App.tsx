@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import FileAttachment from "./components/home/FileAttachment";
 import MessageStats, { Message, MessageStatsOptions, MessageStatsSettings } from "./components/home/MessageStats";
-import { getDefaultMessageStatsSettings } from "./lib/message-stats-utils";
+import { getDefaultMessageStatsSettings, getFilteredMessages } from "./lib/message-stats-utils";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "./components/ui/resizable";
 
-function Settings({ setMessages, setSettings, settings }: { setMessages: (messages: Message[]) => void, setSettings: (settings: MessageStatsSettings) => void, settings: MessageStatsSettings }) {
+function Settings({ setFilteredMessages }: { setFilteredMessages: (messages: Message[]) => void }) {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [settings, setSettings] = useState<MessageStatsSettings>(getDefaultMessageStatsSettings());
+
   return (
     <>
       <FileAttachment
@@ -18,22 +21,17 @@ function Settings({ setMessages, setSettings, settings }: { setMessages: (messag
           const content = JSON.parse(await file.text());
           
           setMessages(content);
+          setFilteredMessages(getFilteredMessages(content, settings.textFilter, settings.textFilterCaseSensitive));
         }}
       />
 
-      <MessageStatsOptions
-        onUpdate={(key: keyof MessageStatsSettings, value) => {
-          const newSettings = { ...settings, [key]: value };
-          setSettings(newSettings);
-        }}
-      />
+      <MessageStatsOptions settings={settings} setSettings={setSettings} setFilteredMessages={setFilteredMessages} messages={messages} />
     </>
   );
 }
 
 export default function App() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [settings, setSettings] = useState<MessageStatsSettings>(getDefaultMessageStatsSettings());
+  const [filteredMessages, setFilteredMessages] = useState<Message[]>([]);
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
 
   useEffect(() => {
@@ -52,11 +50,11 @@ export default function App() {
   (
     <main className="size-full flex flex-col gap-5">
       <div className="p-5 pb-0 grow-0 shrink-0">
-        <Settings setMessages={setMessages} setSettings={setSettings} settings={settings} />
+        <Settings setFilteredMessages={setFilteredMessages} />
       </div>
 
       <div className="overflow-auto p-5 pt-0">
-        <MessageStats messages={messages} settings={settings} />
+        <MessageStats filteredMessages={filteredMessages} />
       </div>
     </main>
   )
@@ -64,14 +62,14 @@ export default function App() {
   (
     <ResizablePanelGroup direction="horizontal" className="size-full">
       <ResizablePanel minSize={25} className="p-5">
-        <Settings setMessages={setMessages} setSettings={setSettings} settings={settings} />
+        <Settings setFilteredMessages={setFilteredMessages} />
       </ResizablePanel>
 
       <ResizableHandle withHandle />
 
       <ResizablePanel minSize={50}>
         <div className="overflow-auto h-full p-5">
-          <MessageStats messages={messages} settings={settings} />
+          <MessageStats filteredMessages={filteredMessages} />
         </div>
       </ResizablePanel>
     </ResizablePanelGroup>

@@ -7,6 +7,7 @@ import { Card } from "../ui/card";
 import { LabelledPieChart } from "../ui/charts/labelled-pie-chart";
 import { MonthStackedBarChart } from "../ui/charts/month-stacked-bar-chart";
 import { Link, Tag } from "lucide-react";
+import { Button } from "../ui/button";
 
 export interface Message {
   content: string;
@@ -22,6 +23,7 @@ interface BaseMessageStatsProps {
 export interface MessageStatsSettings {
   textFilter: string;
   textFilterCaseSensitive: boolean;
+  autoUpdate: boolean;
 }
 
 function MessageStatContainer({ children }: { children: ReactNode }) {
@@ -32,7 +34,14 @@ function MessageStatContainer({ children }: { children: ReactNode }) {
   )
 }
 
-export function MessageStatsOptions({ onUpdate }: { onUpdate: (updatedKey: keyof MessageStatsSettings, value: unknown) => void }) {
+export function MessageStatsOptions({ setFilteredMessages, messages, settings, setSettings }: { setFilteredMessages: (messages: Message[]) => void, messages: Message[], settings: MessageStatsSettings, setSettings: (settings: MessageStatsSettings) => void }) {
+
+  useEffect(() => {
+    if (settings.autoUpdate) {
+      setFilteredMessages(getFilteredMessages(messages, settings.textFilter, settings.textFilterCaseSensitive));
+    }
+  }, [messages, setFilteredMessages, settings]);
+
   return (
     <>
       <Label htmlFor="textFilter">Text filter</Label>
@@ -41,7 +50,9 @@ export function MessageStatsOptions({ onUpdate }: { onUpdate: (updatedKey: keyof
         name="textFilter"
         type="text"
         onChange={(event) => {
-          onUpdate("textFilter", event.target.value);
+          const settingsCopy = { ...settings };
+          settingsCopy["textFilter"] = event.target.value;
+          setSettings(settingsCopy);
         }}
       />
 
@@ -52,15 +63,38 @@ export function MessageStatsOptions({ onUpdate }: { onUpdate: (updatedKey: keyof
         type="checkbox"
         defaultChecked
         onChange={(event) => {
-          onUpdate("textFilterCaseSensitive", event.target.checked);
+          const settingsCopy = { ...settings };
+          settingsCopy["textFilterCaseSensitive"] = event.target.checked;
+          setSettings(settingsCopy);
         }}
       />
+
+      <Label htmlFor="autoUpdate">Auto update</Label>
+      <Input
+        id="autoUpdate"
+        name="autoUpdate"
+        type="checkbox"
+        defaultChecked={false}
+        onChange={(event) => {
+          const settingsCopy = { ...settings };
+          settingsCopy["autoUpdate"] = event.target.checked;
+          setSettings(settingsCopy);
+        }}
+      />
+
+
+      <Button
+        disabled={settings.autoUpdate}
+        onClick={() => {
+          if (!settings.autoUpdate)
+            setFilteredMessages(getFilteredMessages(messages, settings.textFilter, settings.textFilterCaseSensitive));
+        }}
+      >Search Messages</Button>
     </>
   )
 }
 
-export default function MessageStats({ messages, settings }: BaseMessageStatsProps & { settings: MessageStatsSettings }) {
-  const filteredMessages = getFilteredMessages(messages, settings.textFilter, settings.textFilterCaseSensitive);
+export default function MessageStats({ filteredMessages }: { filteredMessages: Message[] }) {
   
   return (
     <div>
