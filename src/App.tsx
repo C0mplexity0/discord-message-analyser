@@ -6,7 +6,7 @@ export default function App() {
   const [messages, setMessages] = useState<Message[]>([]);
 
   return (
-    <main className="size-full">
+    <main className="size-full p-5">
       <FileAttachment
         onChange={async (files) => {
           const file = files[0];
