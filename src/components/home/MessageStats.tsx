@@ -1,11 +1,11 @@
-import { getFilteredMessages, getMonthIdFromName, getMonthName, getMonthNameFromId } from "@/lib/message-stats-utils";
-import { MonthBarChart } from "../ui/charts/month-bar-chart";
+import { getFilteredMessages, getMonthId, getMonthNameFromId } from "@/lib/message-stats-utils";
 import { Input } from "../ui/input";
 import { ReactNode, useEffect, useState } from "react";
 import { Label } from "../ui/label";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "../ui/pagination";
 import { Card } from "../ui/card";
 import { LabelledPieChart } from "../ui/charts/labelled-pie-chart";
+import { MonthStackedBarChart } from "../ui/charts/month-stacked-bar-chart";
 
 export interface Message {
   content: string;
@@ -19,7 +19,7 @@ interface BaseMessageStatsProps {
 
 function MessageStatContainer({ children }: { children: ReactNode }) {
   return (
-    <div style={{width: "calc(50% - (2.5 * var(--spacing)))"}} className="aspect-video">
+    <div style={{width: "calc(50% - (2.5 * var(--spacing)))"}} className="aspect-[4/3]">
       {children}
     </div>
   )
@@ -70,26 +70,30 @@ export default function MessageStats({ messages }: BaseMessageStatsProps) {
 }
 
 function getMessageCountAgainstTimeData(messages: Message[]) {
-  const data: { [month: string]: number } = {};
+  const authors: { [id: string]: string } = {};
+  const data: { [id: string]: number }[] = [];
   let startMonth;
   let endMonth;
   
   for (let i=0;i<messages.length;i++) {
+    const authorId = messages[i].author.id;
+    authors[authorId] = messages[i].author.username;
     const date = new Date(messages[i].timestamp);
-    const month = getMonthName(date.getMonth(), date.getFullYear());
+    const month = getMonthId(date.getMonth(), date.getFullYear());
     if (data[month] === undefined) {
-      data[month] = 0;
+      data[month] = {};
+    }
+    if (data[month][authorId] === undefined) {
+      data[month][authorId] = 0;
     }
 
-    data[month] += 1;
+    data[month][authorId] += 1;
 
-    const monthId = getMonthIdFromName(month);
-
-    if (!startMonth || (monthId && monthId < startMonth)) {
-      startMonth = monthId;
+    if (!startMonth || month < startMonth) {
+      startMonth = month;
     }
-    if (!endMonth || (monthId && monthId > endMonth)) {
-      endMonth = monthId;
+    if (!endMonth || month > endMonth) {
+      endMonth = month;
     }
   }
 
@@ -100,23 +104,43 @@ function getMessageCountAgainstTimeData(messages: Message[]) {
   const chartData = [];
 
   for (let i = startMonth; i <= endMonth; i++) {
-    const month = getMonthNameFromId(i);
-    chartData.push({ month: month, messages: data[month] ? data[month] : 0 });
+    const currentData: { month: string, [id: string]: number | string } = { month: getMonthNameFromId(i) };
+
+    if (!data[i]) {
+      chartData.push(currentData);
+      continue;
+    }
+
+    let total = 0;
+
+    for (const userId in data[i]) {
+      total += data[i][userId];
+    }
+
+    let otherTotal = 0;
+    
+    for (const userId in data[i]) {
+      if (data[i][userId] / total < 0.05) {
+        otherTotal += data[i][userId];
+        continue;
+      }
+
+      currentData[authors[userId]] = data[i][userId];
+    }
+
+    if (otherTotal > 0) {
+      currentData["Other"] = otherTotal;
+    }
+
+    chartData.push(currentData);
   }
 
   chartData.sort((a, b) => {
-    const aId = getMonthIdFromName(a.month);
-    const bId = getMonthIdFromName(b.month);
-
-    if (!aId || !bId) {
-      return 0;
-    }
-
-    if (aId < bId) {
+    if (a < b) {
       return -1;
     }
 
-    if (aId > bId) {
+    if (a > b) {
       return 1;
     }
 
@@ -128,9 +152,7 @@ function getMessageCountAgainstTimeData(messages: Message[]) {
 
 function MessageCountAgainstTime({ messages }: BaseMessageStatsProps) {
   return (
-    <div>
-      <MonthBarChart title="Message Frequency" chartData={getMessageCountAgainstTimeData(messages)} />
-    </div>
+    <MonthStackedBarChart title="Message Frequency" chartData={getMessageCountAgainstTimeData(messages)} />
   )
 }
 
@@ -193,7 +215,7 @@ function MessageDisplay({ messages }: BaseMessageStatsProps) {
           {
             pageLinks.map((val, i) => {
               return (
-                <PaginationItem>
+                <PaginationItem key={i}>
                   <PaginationLink 
                     key={i}
                     onClick={() => {
@@ -250,10 +272,10 @@ function UserPieChart({ messages }: BaseMessageStatsProps) {
   }
 
   if (otherMessages > 0) {
-    chartData.push({ username: "Other", messages: otherMessages, fill: "var(--chart-gray)" });
+    chartData.push({ username: "Other", messages: otherMessages});
   }
 
   return (
-    <LabelledPieChart chartData={chartData} />
+    <LabelledPieChart chartData={chartData} title="Message Distribution" />
   );
 }
