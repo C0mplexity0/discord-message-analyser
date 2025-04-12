@@ -1,13 +1,6 @@
 .messageStatContainer {
-  width: calc(33.3% - (3.4 * var(--spacing)));
+  width: calc(50% - (2.5 * var(--spacing)));
 }
-
-@media only screen and (max-width: 1200px) {
-  .messageStatContainer {
-    width: calc(50% - (2.5 * var(--spacing)));
-  }
-}
-
 
 @media only screen and (max-width: 800px) {
   .messageStatContainer {
