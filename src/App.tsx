@@ -4,7 +4,7 @@ import MessageStats, { Message, MessageStatsOptions, MessageStatsSettings } from
 import { getDefaultMessageStatsSettings, getFilteredMessages } from "./lib/message-stats-utils";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "./components/ui/resizable";
 
-function Settings({ setFilteredMessages }: { setFilteredMessages: (messages: Message[]) => void }) {
+function Settings({ setFilteredMessages, setFilter }: { setFilteredMessages: (messages: Message[]) => void, setFilter: (filter: string) => void }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [settings, setSettings] = useState<MessageStatsSettings>(getDefaultMessageStatsSettings());
 
@@ -21,11 +21,12 @@ function Settings({ setFilteredMessages }: { setFilteredMessages: (messages: Mes
           const content = JSON.parse(await file.text());
           
           setMessages(content);
+          setFilter(settings.textFilter);
           setFilteredMessages(getFilteredMessages(content, settings.textFilter, settings.textFilterCaseSensitive));
         }}
       />
 
-      <MessageStatsOptions settings={settings} setSettings={setSettings} setFilteredMessages={setFilteredMessages} messages={messages} />
+      <MessageStatsOptions settings={settings} setSettings={setSettings} setFilter={setFilter} setFilteredMessages={setFilteredMessages} messages={messages} />
     </>
   );
 }
@@ -33,6 +34,7 @@ function Settings({ setFilteredMessages }: { setFilteredMessages: (messages: Mes
 export default function App() {
   const [filteredMessages, setFilteredMessages] = useState<Message[]>([]);
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
+  const [filter, setFilter] = useState("");
 
   useEffect(() => {
     const listener = () => {
@@ -50,11 +52,11 @@ export default function App() {
   (
     <main className="size-full flex flex-col gap-5">
       <div className="p-5 pb-0 grow-0 shrink-0">
-        <Settings setFilteredMessages={setFilteredMessages} />
+        <Settings setFilteredMessages={setFilteredMessages} setFilter={setFilter} />
       </div>
 
       <div className="overflow-auto p-5 pt-0">
-        <MessageStats filteredMessages={filteredMessages} />
+        <MessageStats filteredMessages={filteredMessages} filter={filter} />
       </div>
     </main>
   )
@@ -62,14 +64,14 @@ export default function App() {
   (
     <ResizablePanelGroup direction="horizontal" className="size-full">
       <ResizablePanel minSize={15} className="p-5">
-        <Settings setFilteredMessages={setFilteredMessages} />
+        <Settings setFilteredMessages={setFilteredMessages} setFilter={setFilter} />
       </ResizablePanel>
 
       <ResizableHandle withHandle />
 
       <ResizablePanel minSize={50} defaultSize={75}>
         <div className="overflow-auto h-full p-5">
-          <MessageStats filteredMessages={filteredMessages} />
+          <MessageStats filteredMessages={filteredMessages} filter={filter} />
         </div>
       </ResizablePanel>
     </ResizablePanelGroup>

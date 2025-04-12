@@ -35,13 +35,14 @@ function MessageStatContainer({ children }: { children: ReactNode }) {
   )
 }
 
-export function MessageStatsOptions({ setFilteredMessages, messages, settings, setSettings }: { setFilteredMessages: (messages: Message[]) => void, messages: Message[], settings: MessageStatsSettings, setSettings: (settings: MessageStatsSettings) => void }) {
+export function MessageStatsOptions({ setFilteredMessages, messages, settings, setSettings, setFilter }: { setFilteredMessages: (messages: Message[]) => void, messages: Message[], settings: MessageStatsSettings, setSettings: (settings: MessageStatsSettings) => void, setFilter: (filter: string) => void }) {
 
   useEffect(() => {
     if (settings.autoUpdate) {
+      setFilter(settings.textFilter);
       setFilteredMessages(getFilteredMessages(messages, settings.textFilter, settings.textFilterCaseSensitive));
     }
-  }, [messages, setFilteredMessages, settings]);
+  }, [messages, setFilteredMessages, settings, setFilter]);
 
   return (
     <>
@@ -62,7 +63,7 @@ export function MessageStatsOptions({ setFilteredMessages, messages, settings, s
         id="textFilterCaseSensitive"
         name="textFilterCaseSensitive"
         type="checkbox"
-        defaultChecked
+        defaultChecked={false}
         onChange={(event) => {
           const settingsCopy = { ...settings };
           settingsCopy["textFilterCaseSensitive"] = event.target.checked;
@@ -87,21 +88,22 @@ export function MessageStatsOptions({ setFilteredMessages, messages, settings, s
       <Button
         disabled={settings.autoUpdate}
         onClick={() => {
-          if (!settings.autoUpdate)
+          if (!settings.autoUpdate) {
+            setFilter(settings.textFilter);
             setFilteredMessages(getFilteredMessages(messages, settings.textFilter, settings.textFilterCaseSensitive));
+          }
         }}
       >Search Messages</Button>
     </>
   )
 }
 
-export default function MessageStats({ filteredMessages }: { filteredMessages: Message[] }) {
-  
+export default function MessageStats({ filteredMessages, filter }: { filteredMessages: Message[], filter: string }) {
   return (
     <div>
       <div className="flex flex-grid flex-wrap gap-5">
         <MessageStatContainer>
-          <MessageDisplay messages={filteredMessages} />
+          <MessageDisplay messages={filteredMessages} filter={filter} />
         </MessageStatContainer>
         <MessageStatContainer>
           <MessageCountAgainstTime messages={filteredMessages} />
@@ -201,7 +203,50 @@ function MessageCountAgainstTime({ messages }: BaseMessageStatsProps) {
   );
 }
 
-function MessageDisplayMessage({ message }: { message: Message }) {
+function MessageDisplayMessageText({ message, filter }: { message: Message, filter: string }) {
+  const locations: number[] = [];
+
+  const messageContentLowerCase = message.content.toLowerCase();
+  let searchStart = 0;
+
+  while (messageContentLowerCase.indexOf(filter.toLowerCase(), searchStart) > -1 && filter !== "") {
+    const index = messageContentLowerCase.indexOf(filter.toLowerCase(), searchStart);
+    locations.push(index);
+    searchStart = index + filter.length;
+  }
+
+  let currentLocation = 0;
+  const currentText: { type: number, content: string }[] = [];
+
+  for (let i=0;i<locations.length;i++) {
+    if (currentLocation !== locations[i]) {
+      currentText.push({ type: 0, content: message.content.substring(currentLocation - 1, locations[i]) });
+    }
+    currentText.push({ type: 1, content: message.content.substring(locations[i], locations[i] + filter.length) });
+    currentLocation = locations[i] + filter.length + 1;
+  }
+
+  console.log(message.content);
+  console.log(locations);
+  console.log(currentText);
+  
+  return (
+    <span className="text-secondary-foreground max-w-full wrap-break-word">
+      {
+        currentText.map((val, i) => {
+          if (val.type === 0) {
+            console.log(val.content);
+            return <span key={i}>{val.content}</span>;
+          } else {
+            return <span key={i} className="bg-amber-400/20">{val.content}</span>;
+          }
+        })
+      }
+    </span>
+  );
+}
+
+function MessageDisplayMessage({ message, filter }: { message: Message, filter: string }) {
   const linkRegex = /https:\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])/;
   const foundLinks = message.content.match(linkRegex);
   let isTenorGif = false;
@@ -212,7 +257,7 @@ function MessageDisplayMessage({ message }: { message: Message }) {
   return (
     <div className="flex flex-col p-2 pt-1.5 pb-1.5 bg-secondary/90 rounded-md">
       <span className="font-semibold">{message.author["global_name"]}</span>
-      {!isTenorGif ? <span className="text-secondary-foreground max-w-full wrap-break-word">{message.content}</span> : ""}
+      {!isTenorGif ? <MessageDisplayMessageText message={message} filter={filter} /> : ""}
       {
         message.attachments.length > 0 ? 
         <div className="rounded-sm bg-accent flex flex-row p-1 pl-1.5 pr-2 gap-1 w-fit mt-1">
@@ -233,7 +278,7 @@ function MessageDisplayMessage({ message }: { message: Message }) {
   );
 }
 
-function MessageDisplay({ messages }: BaseMessageStatsProps) {
+function MessageDisplay({ messages, filter }: BaseMessageStatsProps & { filter: string }) {
   const [page, setPage] = useState(1);
   const DISPLAYED_AT_ONCE = 50;
   
@@ -273,7 +318,7 @@ function MessageDisplay({ messages }: BaseMessageStatsProps) {
     <Card className="p-4 h-full flex flex-col gap-4 overflow-hidden">
       <div className="overflow-auto flex flex-col gap-2">
         {selectedMessages.map((value, i) => {
-          return <MessageDisplayMessage message={value} key={i} />;
+          return <MessageDisplayMessage filter={filter} message={value} key={i} />;
         })}
       </div>
 
