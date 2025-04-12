@@ -100,17 +100,22 @@ export function MessageStatsOptions({ setFilteredMessages, messages, settings, s
 
 export default function MessageStats({ filteredMessages, filter }: { filteredMessages: Message[], filter: string }) {
   return (
-    <div>
-      <div className="flex flex-grid flex-wrap gap-5">
-        <MessageStatContainer>
-          <MessageDisplay messages={filteredMessages} filter={filter} />
-        </MessageStatContainer>
-        <MessageStatContainer>
-          <MessageCountAgainstTime messages={filteredMessages} />
-        </MessageStatContainer>
-        <MessageStatContainer>
-          <UserPieChart messages={filteredMessages} />
-        </MessageStatContainer>
+    <div className="size-full">
+      <div className="w-full p-1 border-b">
+        <span className="text-secondary-foreground p-1 pt-0 inline-block">{filteredMessages.length === 1 ? "1 result" : `${filteredMessages.length} results`}</span>
+      </div>
+      <div className="size-full overflow-auto p-5">
+        <div className="flex flex-grid flex-wrap gap-5 h-fit">
+          <MessageStatContainer>
+            <MessageDisplay messages={filteredMessages} filter={filter} />
+          </MessageStatContainer>
+          <MessageStatContainer>
+            <MessageCountAgainstTime messages={filteredMessages} />
+          </MessageStatContainer>
+          <MessageStatContainer>
+            <UserPieChart messages={filteredMessages} />
+          </MessageStatContainer>
+        </div>
       </div>
     </div>
   );

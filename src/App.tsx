@@ -70,7 +70,7 @@ export default function App() {
       <ResizableHandle withHandle />
 
       <ResizablePanel minSize={50} defaultSize={75}>
-        <div className="overflow-auto h-full p-5">
+        <div className="h-full">
           <MessageStats filteredMessages={filteredMessages} filter={filter} />
         </div>
       </ResizablePanel>
