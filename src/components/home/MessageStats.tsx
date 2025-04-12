@@ -1,6 +1,6 @@
 import { getFilteredMessages, getMonthId, getMonthNameFromId } from "@/lib/message-stats-utils";
 import { Input } from "../ui/input";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { Label } from "../ui/label";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "../ui/pagination";
 import { Card } from "../ui/card";
@@ -9,12 +9,20 @@ import { MonthStackedBarChart } from "../ui/charts/month-stacked-bar-chart";
 import { Link, Tag } from "lucide-react";
 import { Button } from "../ui/button";
 import styles from "./MessageStats.module.css";
+import { escapeHtml, escapeRegExp } from "@/lib/utils";
+
+export interface User { 
+  id: string, 
+  username: string, 
+  "global_name": string 
+}
 
 export interface Message {
   content: string;
   timestamp: string;
-  author: { id: string, username: string, "global_name": string };
+  author: User;
   attachments: string[];
+  mentions: User[];
 }
 
 interface BaseMessageStatsProps {
@@ -208,45 +216,58 @@ function MessageCountAgainstTime({ messages }: BaseMessageStatsProps) {
   );
 }
 
+function getFilterHighlightedSectionsInText(text: string, filter: string) {
+  if (filter === "") {
+    return text;
+  }
+
+  return text.replace(new RegExp(escapeRegExp(filter), "gi"), `<span class="bg-highlight-foreground">${filter}</span>`);
+}
+
+function getMentionsInText(text: string, mentions: User[]) {
+  let newText = text;
+
+  for (let i=0;i<mentions.length;i++) {
+    const mentionStr = `&lt;@${mentions[i].id}&gt;`;
+    newText = newText.replace(new RegExp(escapeRegExp(mentionStr), "gi"), `<span class="bg-blue-400/20 rounded-sm p-1 pt-0.5 pb-0.5">@${mentions[i].global_name}</span>`);
+  }
+
+  return newText;
+}
+
+function getLinksInText(text: string) {
+  const linkRegex = /https:\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])/g;
+  const foundLinks = text.match(linkRegex);
+
+  if (!foundLinks) {
+    return text;
+  }
+
+  for (let i=0;i<foundLinks.length;i++) {
+    text = text.replace(foundLinks[i], `<a target="_blank" class="text-blue-300 underline" href=${foundLinks[i]}>${foundLinks[i]}</a>`);
+  }
+
+  return text;
+}
+
 function MessageDisplayMessageText({ message, filter }: { message: Message, filter: string }) {
-  const locations: number[] = [];
+  let text = escapeHtml(message.content);
 
-  const messageContentLowerCase = message.content.toLowerCase();
-  let searchStart = 0;
+  text = getFilterHighlightedSectionsInText(text, filter);
 
-  while (messageContentLowerCase.indexOf(filter.toLowerCase(), searchStart) > -1 && filter !== "") {
-    const index = messageContentLowerCase.indexOf(filter.toLowerCase(), searchStart);
-    locations.push(index);
-    searchStart = index + filter.length;
-  }
+  text = getMentionsInText(text, message.mentions);
 
-  let currentLocation = 0;
-  const currentText: { type: number, content: string }[] = [];
-
-  for (let i=0;i<locations.length;i++) {
-    if (currentLocation !== locations[i]) {
-      currentText.push({ type: 0, content: message.content.substring(currentLocation - 1, locations[i]) });
-    }
-    currentText.push({ type: 1, content: message.content.substring(locations[i], locations[i] + filter.length) });
-    currentLocation = locations[i] + filter.length + 1;
-  }
-
-  if (locations.length === 0) {
-    currentText.push({ type: 0, content: message.content });
-  }
+  text = getLinksInText(text);
   
+  const spanRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (spanRef.current)
+      spanRef.current.innerHTML = text;
+  });
+
   return (
-    <span className="text-secondary-foreground max-w-full wrap-break-word">
-      {
-        currentText.map((val, i) => {
-          if (val.type === 0) {
-            return <span key={i}>{val.content}</span>;
-          } else {
-            return <span key={i} className="bg-amber-400/20">{val.content}</span>;
-          }
-        })
-      }
-    </span>
+    <span ref={spanRef} className="text-secondary-foreground max-w-full wrap-break-word"></span>
   );
 }
 
@@ -259,7 +280,7 @@ function MessageDisplayMessage({ message, filter }: { message: Message, filter: 
   }
 
   return (
-    <div className="flex flex-col p-2 pt-1.5 pb-1.5 bg-secondary/90 rounded-md">
+    <div className="flex flex-col gap-0.5 p-2 pt-1.5 pb-1.5 bg-secondary/90 rounded-md">
       <span className="font-semibold">{message.author["global_name"]}</span>
       {!isTenorGif ? <MessageDisplayMessageText message={message} filter={filter} /> : ""}
       {
