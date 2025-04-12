@@ -226,9 +226,9 @@ function MessageDisplayMessageText({ message, filter }: { message: Message, filt
     currentLocation = locations[i] + filter.length + 1;
   }
 
-  console.log(message.content);
-  console.log(locations);
-  console.log(currentText);
+  if (locations.length === 0) {
+    currentText.push({ type: 0, content: message.content });
+  }
   
   return (
     <span className="text-secondary-foreground max-w-full wrap-break-word">
