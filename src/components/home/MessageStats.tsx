@@ -212,7 +212,7 @@ function MessageDisplayMessage({ message }: { message: Message }) {
   return (
     <div className="flex flex-col p-2 pt-1.5 pb-1.5 bg-secondary/90 rounded-md">
       <span className="font-semibold">{message.author["global_name"]}</span>
-      {!isTenorGif ? <span className="text-secondary-foreground">{message.content}</span> : ""}
+      {!isTenorGif ? <span className="text-secondary-foreground max-w-full wrap-break-word">{message.content}</span> : ""}
       {
         message.attachments.length > 0 ? 
         <div className="rounded-sm bg-accent flex flex-row p-1 pl-1.5 pr-2 gap-1 w-fit mt-1">
