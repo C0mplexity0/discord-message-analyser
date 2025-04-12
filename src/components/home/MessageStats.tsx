@@ -8,6 +8,7 @@ import { LabelledPieChart } from "../ui/charts/labelled-pie-chart";
 import { MonthStackedBarChart } from "../ui/charts/month-stacked-bar-chart";
 import { Link, Tag } from "lucide-react";
 import { Button } from "../ui/button";
+import styles from "./MessageStats.module.css";
 
 export interface Message {
   content: string;
@@ -28,7 +29,7 @@ export interface MessageStatsSettings {
 
 function MessageStatContainer({ children }: { children: ReactNode }) {
   return (
-    <div style={{width: "calc(50% - (2.5 * var(--spacing)))"}} className="aspect-[4/3]">
+    <div className={`${styles.messageStatContainer} aspect-[4/3]`}>
       {children}
     </div>
   )
