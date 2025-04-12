@@ -14,6 +14,8 @@ import {
   ChartContainer,
   ChartLegend,
   ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
 } from "@/components/ui/chart"
 import { setupUserColour } from "@/lib/message-stats-utils"
 
@@ -47,6 +49,9 @@ export function LabelledPieChart({ chartData, title }: { chartData: { username: 
           className="mx-auto aspect-square h-full"
         >
           <PieChart>
+            <ChartTooltip
+              content={<ChartTooltipContent nameKey="username" hideLabel />}
+            />
             <Pie data={chartData} dataKey="messages" />
             <ChartLegend
               content={
