@@ -10,6 +10,7 @@ import { Link, Tag } from "lucide-react";
 import { Button } from "../ui/button";
 import styles from "./MessageStats.module.css";
 import { escapeHtml, escapeRegExp } from "@/lib/utils";
+import { format } from "date-format-parse";
 
 export interface User { 
   id: string, 
@@ -281,7 +282,10 @@ function MessageDisplayMessage({ message, filter }: { message: Message, filter: 
 
   return (
     <div className="flex flex-col gap-0.5 p-2 pt-1.5 pb-1.5 bg-secondary/90 rounded-md">
-      <span className="font-semibold">{message.author["global_name"]}</span>
+      <div className="flex flex-row gap-1 items-center">
+        <span className="font-semibold">{message.author["global_name"]}</span>
+        <span className="text-gray-300 text-sm pt-0.25">{format(new Date(message.timestamp), "DD/MM/YYYY HH:mm")}</span>
+      </div>
       {!isTenorGif ? <MessageDisplayMessageText message={message} filter={filter} /> : ""}
       {
         message.attachments.length > 0 ? 
