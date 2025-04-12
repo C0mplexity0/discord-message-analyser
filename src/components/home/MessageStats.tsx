@@ -240,7 +240,6 @@ function MessageDisplayMessageText({ message, filter }: { message: Message, filt
       {
         currentText.map((val, i) => {
           if (val.type === 0) {
-            console.log(val.content);
             return <span key={i}>{val.content}</span>;
           } else {
             return <span key={i} className="bg-amber-400/20">{val.content}</span>;
