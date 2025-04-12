@@ -61,13 +61,13 @@ export default function App() {
   :
   (
     <ResizablePanelGroup direction="horizontal" className="size-full">
-      <ResizablePanel minSize={25} className="p-5">
+      <ResizablePanel minSize={15} className="p-5">
         <Settings setFilteredMessages={setFilteredMessages} />
       </ResizablePanel>
 
       <ResizableHandle withHandle />
 
-      <ResizablePanel minSize={50}>
+      <ResizablePanel minSize={50} defaultSize={75}>
         <div className="overflow-auto h-full p-5">
           <MessageStats filteredMessages={filteredMessages} />
         </div>
