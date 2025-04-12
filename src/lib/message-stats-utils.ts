@@ -71,7 +71,7 @@ export function getMonthNameFromId(id: number) {
 let userColourCount = 0;
 
 export function setupUserColour(username: string) {
-  if (document.body.style.getPropertyValue("--chart-user-" + username))
+  if (document.body.style.getPropertyValue("--chart-user-" + username.replace("@", "")))
     return;
 
   if (username === "Other") {
@@ -79,7 +79,7 @@ export function setupUserColour(username: string) {
     return;
   }
 
-  document.body.style.setProperty("--chart-user-" + username, `var(--chart-${(userColourCount % 8) + 1})`);
+  document.body.style.setProperty("--chart-user-" + username.replace("@", ""), `var(--chart-${(userColourCount % 8) + 1})`);
   userColourCount++;
 }
 
