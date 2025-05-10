@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "predeploy": "yarn build",
-    "deploy": "gh-pages -d dist --cname discord-message-analyser.adamdev.uk",
+    "deploy": "gh-pages -d dist --cname discord-message-analyser.c0mplexity.com",
     "lint": "eslint .",
     "preview": "vite preview"
   },
